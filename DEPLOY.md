@@ -64,6 +64,23 @@
 
 ## 4. 安装步骤
 
+如果你希望尽量自动化安装，可以直接使用 [setup.sh](/Users/Jacob/international_news_digest/setup.sh)：
+
+```bash
+cd /Users/Jacob/international_news_digest
+chmod +x setup.sh
+./setup.sh
+```
+
+它会自动完成：
+
+- 创建虚拟环境
+- 安装依赖
+- 初始化 `.env`
+- 安装并刷新 `launchd`
+
+首次执行后，你只需要继续编辑 `.env` 补全凭证即可。
+
 ### 4.1 克隆代码
 
 ```bash
