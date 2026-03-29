@@ -1,7 +1,37 @@
+# Local secrets
 .env
-.venv/
-__pycache__/
-*.pyc
+.env.local
+.env.*.local
 google-translate-key.json
+*.pem
+*.key
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache / build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Runtime outputs
 logs/
 output/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
