@@ -12,6 +12,50 @@ LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 PLIST_TARGET="$LAUNCH_AGENTS_DIR/com.jacob.internationalnewsdigest.plist"
 LABEL="com.jacob.internationalnewsdigest"
 
+check_env_requirements() {
+  local missing=()
+
+  if [[ ! -f "$ENV_FILE" ]]; then
+    echo "[WARN] .env not found: $ENV_FILE"
+    return
+  fi
+
+  set -a
+  source "$ENV_FILE"
+  set +a
+
+  [[ -n "${NEWS_DIGEST_SMTP_HOST:-}" ]] || missing+=("NEWS_DIGEST_SMTP_HOST")
+  [[ -n "${NEWS_DIGEST_SMTP_PORT:-}" ]] || missing+=("NEWS_DIGEST_SMTP_PORT")
+  [[ -n "${NEWS_DIGEST_SMTP_USER:-}" ]] || missing+=("NEWS_DIGEST_SMTP_USER")
+  [[ -n "${NEWS_DIGEST_SMTP_PASSWORD:-}" ]] || missing+=("NEWS_DIGEST_SMTP_PASSWORD")
+  [[ -n "${NEWS_DIGEST_SENDER:-}" ]] || missing+=("NEWS_DIGEST_SENDER")
+  [[ -n "${NEWS_DIGEST_RECIPIENTS:-}" ]] || missing+=("NEWS_DIGEST_RECIPIENTS")
+
+  local provider="${NEWS_DIGEST_TRANSLATION_PROVIDER:-google}"
+  if [[ "$provider" == "google" ]]; then
+    [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]] || missing+=("GOOGLE_APPLICATION_CREDENTIALS")
+    [[ -n "${GOOGLE_CLOUD_PROJECT:-}" ]] || missing+=("GOOGLE_CLOUD_PROJECT")
+    if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" && ! -f "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
+      missing+=("GOOGLE_APPLICATION_CREDENTIALS(file_not_found)")
+    fi
+  elif [[ "$provider" == "openai" ]]; then
+    [[ -n "${OPENAI_API_KEY:-}" ]] || missing+=("OPENAI_API_KEY")
+  else
+    missing+=("NEWS_DIGEST_TRANSLATION_PROVIDER(unsupported:$provider)")
+  fi
+
+  if (( ${#missing[@]} > 0 )); then
+    echo
+    echo "[WARN] Missing or invalid configuration detected:"
+    for item in "${missing[@]}"; do
+      echo "  - $item"
+    done
+  else
+    echo
+    echo "[INFO] .env validation passed"
+  fi
+}
+
 echo "[1/6] Checking Python"
 command -v "$PYTHON_BIN" >/dev/null 2>&1 || {
   echo "[ERROR] python3 not found"
@@ -43,6 +87,7 @@ launchctl bootstrap "gui/$(id -u)" "$PLIST_TARGET"
 launchctl enable "gui/$(id -u)/$LABEL"
 
 echo "[6/6] Done"
+check_env_requirements
 echo
 echo "Next steps:"
 echo "1. Edit $ENV_FILE"
